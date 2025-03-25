@@ -1,4 +1,6 @@
 from discord.ext import commands
+
+import logging
 import random
 
 WORDS = []
@@ -35,7 +37,7 @@ class Wordle(commands.Cog):
 
     # Command to start wordle game
     @commands.command()
-    async def start(self, ctx):
+    async def wordle(self, ctx):
         # Start the wordle game
         self.players[ctx.author.id] = {
             "attempts": 6,
@@ -43,6 +45,7 @@ class Wordle(commands.Cog):
             "game_over": False
         }
         await ctx.send("Welcome to Wordle! Guess a 5-letter word.")
+        logging.info(f'{ctx.author} started a Wordle game')
 
     # Command to make a guess
     @commands.command()
@@ -55,8 +58,7 @@ class Wordle(commands.Cog):
         
         player_data = self.players[ctx.author.id]
         attempts = player_data["attempts"]
-        target_word = player_data["word"]
-        game_over = player_data["game_over"]
+        target_word = player_data["target_word"]
 
         # Validation
         guess = guess.lower()
@@ -71,17 +73,20 @@ class Wordle(commands.Cog):
         # If guess is correct, end the game
         if guess == target_word:
             await ctx.send("You won!")
-            game_over = True
-            self.players[ctx.author.id][game_over] = game_over
+            player_data["game_over"] = True
+            logging.info(f'{ctx.author} won the Wordle game! The word was {target_word}.')
             return
         
         # If guess is incorrect, decrease attempts
         attempts -= 1
-        self.players[ctx.author.id][attempts] = attempts
+        self.players[ctx.author.id]["attempts"] = attempts
         if attempts == 0:
             await ctx.send(f"Game over! The word was: {target_word}")
-            game_over = True
-            self.players[ctx.author.id][game_over] = game_over
+            player_data["game_over"] = True
+            logging.info(f'{ctx.author} loss the Wordle game! The word was {target_word}.')
+
+        if attempts > 0:
+            await ctx.send(f"You have {attempts} attempts left.")
 
     # Command to see how many attempts left
     @commands.command()
@@ -94,5 +99,5 @@ class Wordle(commands.Cog):
         await ctx.send(f"You have {attempts_left} attempts left.")
 
 
-def setup(bot):
-    bot.add_cog(Wordle(bot))
+async def setup(bot):
+    await bot.add_cog(Wordle(bot))

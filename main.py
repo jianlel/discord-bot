@@ -4,7 +4,8 @@ import logging
 from typing import Final
 from dotenv import load_dotenv
 from pathlib import Path
-from discord import Intents, Client, Message
+from discord import Intents, Client
+from discord.ext import commands
 
 from bot.message_handler import MessageHandler
 
@@ -26,24 +27,32 @@ logging.basicConfig(
 # Bot setup, activate intents
 intents = Intents.default()
 intents.message_content = True
-client = Client(intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-messageHandler = MessageHandler(client)
+message_handler = MessageHandler(bot)
 
 # Handling startup for bot
-@client.event
+@bot.event
 async def on_ready() -> None:
-    logging.info(f"{client.user} is now running!")
+    logging.info(f"{bot.user} is now running!")
+    # Add wordle cog
+    await bot.load_extension('cogs.wordle')
 
-# Handling incoming messages
-@client.event
+@bot.event
 async def on_message(message):
-    await messageHandler.handle_message(message)
+    if message.author == bot.user:
+        return
+    
+    if message.content.startswith("!"):
+        await bot.process_commands(message)
+        return 
+    
+    await message_handler.handle_message(message)
 
 # Main entry point
 def main():
     logging.info("Bot is starting...")
-    client.run(token=TOKEN)
+    bot.run(token=TOKEN)
 
 if __name__ == '__main__':
     main()

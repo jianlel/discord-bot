@@ -1,14 +1,14 @@
 import logging
 
-from responses import get_response
+from bot.bot_responses import get_response
 
-class MessageHandler:
-    def __init__(self, client):
-        self.client = client
+class MessageHandler():
+    def __init__(self, bot):
+        self.bot = bot
 
     async def handle_message(self, message):
         # If bot wrote the message, ignore it
-        if message.author == self.client.user:
+        if message.author == self.bot.user:
             return
         
         username = str(message.author)
