@@ -98,6 +98,15 @@ class Wordle(commands.Cog):
         attempts_left = self.players[ctx.author.id]["attempts"]
         await ctx.send(f"You have {attempts_left} attempts left.")
 
+    # Command to see user streaks 
+    @commands.command()
+    async def streak(self, ctx):
+        raise NotImplementedError
+    
+    # Command to see user stats
+    @commands.command()
+    async def wordlestats(self, ctx):
+        raise NotImplementedError
 
 async def setup(bot):
     await bot.add_cog(Wordle(bot))
