@@ -1,4 +1,5 @@
 from discord.ext import commands
+import database.database as db
 
 import logging
 import random
@@ -46,6 +47,7 @@ class Wordle(commands.Cog):
         }
         await ctx.send("Welcome to Wordle! Guess a 5-letter word.")
         logging.info(f'{ctx.author} started a Wordle game')
+        logging.info(f'Word is {self.players[ctx.author.id]["target_word"]}')
 
     # Command to make a guess
     @commands.command()
@@ -72,9 +74,12 @@ class Wordle(commands.Cog):
 
         # If guess is correct, end the game
         if guess == target_word:
-            await ctx.send("You won!")
+            await db.win(ctx.author.id)
+            #db.increment_streak(ctx.author.id)
+            streak = await db.get_streak(ctx.author.id)
+            await ctx.send(f"You won! Current streak = {streak}")
             player_data["game_over"] = True
-            logging.info(f'{ctx.author} won the Wordle game! The word was {target_word}.')
+            logging.info(f'{ctx.author} won the Wordle game! The word was {target_word}. Current streak" {streak}')
             return
         
         # If guess is incorrect, decrease attempts
@@ -82,6 +87,8 @@ class Wordle(commands.Cog):
         self.players[ctx.author.id]["attempts"] = attempts
         if attempts == 0:
             await ctx.send(f"Game over! The word was: {target_word}")
+            await db.reset_streak(ctx.author.id)
+            await db.lose(ctx.author.id)
             player_data["game_over"] = True
             logging.info(f'{ctx.author} loss the Wordle game! The word was {target_word}.')
 
@@ -101,12 +108,16 @@ class Wordle(commands.Cog):
     # Command to see user streaks 
     @commands.command()
     async def streak(self, ctx):
-        raise NotImplementedError
+        streak = await db.get_streak(ctx.author.id)
+        await ctx.send(f"Your current streak is {streak}")
     
     # Command to see user stats
     @commands.command()
-    async def wordlestats(self, ctx):
-        raise NotImplementedError
+    async def stats(self, ctx):
+        wins = await db.get_wins(ctx.author.id)
+        losses = await db.get_losses(ctx.author.id)
+        await ctx.send(f"Wins: {wins}")
+        await ctx.send(f"Losses: {losses}")
 
 async def setup(bot):
     await bot.add_cog(Wordle(bot))
