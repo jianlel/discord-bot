@@ -1,5 +1,5 @@
 from discord.ext import commands
-import database.database as db
+import database.wordle_database as db
 
 import logging
 import random
@@ -130,6 +130,7 @@ class Wordle(commands.Cog):
         if attempts == 0:
             if player_data.get("daily"):
                 await ctx.send(f"Game over! The daily word was: {target_word}")
+                await db.mark_daily_completed(ctx.author.id)
                 await db.reset_daily_streak(ctx.author.id)
                 player_data["game_over"] = True
                 logging.info(f'{ctx.author} loss the Daily Wordle game! The word was {target_word}.')
@@ -143,16 +144,6 @@ class Wordle(commands.Cog):
 
         if attempts > 0:
             await ctx.send(f"You have {attempts} attempts left.")
-
-    # Command to see how many attempts left
-    @commands.command()
-    async def attempts(self, ctx):
-        if ctx.author.id not in self.players or self.players[ctx.author.id]["game_over"]:
-            await ctx.send("You need to start a Wordle game with '!start_wordle' first")
-            return
-        
-        attempts_left = self.players[ctx.author.id]["attempts"]
-        await ctx.send(f"You have {attempts_left} attempts left.")
 
     # Command to see user streaks 
     @commands.command()

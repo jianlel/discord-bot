@@ -1,7 +1,7 @@
 import aiosqlite
 import datetime
 
-DB_PATH = "database/wordle.db"
+DB_PATH = "database/game.db"
 
 async def init_db():
     async with aiosqlite.connect(DB_PATH) as db:

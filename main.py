@@ -27,7 +27,7 @@ logging.basicConfig(
 # Bot setup, activate intents
 intents = Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 message_handler = MessageHandler(bot)
 
@@ -35,8 +35,12 @@ message_handler = MessageHandler(bot)
 @bot.event
 async def on_ready() -> None:
     logging.info(f"{bot.user} is now running!")
-    # Add wordle cog
-    await bot.load_extension('cogs.wordle')
+    try:
+        await bot.load_extension('cogs.wordle')
+        await bot.load_extension('cogs.helper')
+    except Exception as e:
+        logging.error(f"Failed to load cog: {e}")
+    
 
 @bot.event
 async def on_message(message):
